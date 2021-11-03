@@ -1,4 +1,3 @@
-# Write your code here
 import random
 
 domino_set = []
@@ -22,9 +21,13 @@ while not status:
         continue
     if len(computer_doubles) == 0:
         status = 'player'
+        domino_snake.append(max(player_doubles))
+        player_pieces.remove(max(player_doubles))
         break
     elif len(player_doubles) == 0:
         status = 'computer'
+        domino_snake.append(max(computer_doubles))
+        computer_pieces.remove(max(computer_doubles))
         break
     if max(computer_doubles) > max(player_doubles):
         status = 'player'
@@ -35,8 +38,15 @@ while not status:
         domino_snake.append(max(player_doubles))
         player_pieces.remove(max(player_doubles))
 
-print(f'Stock pieces: {stock_pieces}')
-print(f'Computer pieces: {computer_pieces}')
-print(f'Player pieces: {player_pieces}')
-print(f'Domino snake: {domino_snake}')
-print(f'Status: {status}')
+print('======================================================================')
+print('Stock size: ' + str(len(stock_pieces)))
+print('Computer pieces: ' + str(len(computer_pieces)))
+print(f'\n{domino_snake[0]}\n')
+print('Your pieces:')
+for i in range(len(player_pieces)):
+    print(f'{i + 1}:{player_pieces[i]}')
+if status == 'computer':
+    message = 'Computer is about to make a move. Press Enter to continue...'
+else:
+    message = 'It\'s your turn to make a move. Enter your command.'
+print('\nStatus: ' + message)
