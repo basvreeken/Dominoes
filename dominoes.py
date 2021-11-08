@@ -19,8 +19,8 @@ def print_snake(snake):
             else:
                 print(str(stone), end=', ')
     else:
-        print(f'{snake[0]}, {snake[1]}, {snake[2]}...{snake[-1]}, {snake[-2]},'
-              f' {snake[-3]}')
+        print(f'{snake[0]}, {snake[1]}, {snake[2]}...{snake[-3]}, {snake[-2]},'
+              f' {snake[-1]}')
 
 
 while not turn:
@@ -35,12 +35,12 @@ while not turn:
     if len(computer_doubles) == 0 and len(player_doubles) == 0:
         continue
     if len(computer_doubles) == 0:
-        turn = 'player'
+        turn = 'computer'
         domino_snake.append(max(player_doubles))
         player_pieces.remove(max(player_doubles))
         break
     elif len(player_doubles) == 0:
-        turn = 'computer'
+        turn = 'player'
         domino_snake.append(max(computer_doubles))
         computer_pieces.remove(max(computer_doubles))
         break
@@ -52,6 +52,20 @@ while not turn:
         turn = 'computer'
         domino_snake.append(max(player_doubles))
         player_pieces.remove(max(player_doubles))
+
+
+def reorient_stone(stone):
+    a = stone[0]
+    stone[0] = stone[1]
+    stone[1] = a
+    return stone
+
+
+def check_move(stone, side):
+    if side == 'left':
+        return domino_snake[0][0] in stone
+    elif side == 'right':
+        return domino_snake[-1][1] in stone
 
 
 def print_display():
@@ -95,41 +109,77 @@ while not game_over:
             break
     if turn == 'computer':
         turn = 'player'
+        input_checked = False
         input('Status: Computer is about to make a move. Press Enter to '
               'continue...\n')
-        option = random.randint(0, 2)  # The test fails on grabbing a stone
-        stone = random.choice(computer_pieces)
-        if option == 0:
-            stone = random.choice(stock_pieces)
-            stock_pieces.remove(stone)
-            computer_pieces.append(stone)
-        elif option == 1:
-            domino_snake.insert(0, stone)
-            computer_pieces.remove(stone)
-        elif option == 2:
-            domino_snake.append(stone)
-            computer_pieces.remove(stone)
+        while not input_checked:
+            try:
+                move = random.randint(
+                    (len(computer_pieces) * -1),
+                    len(computer_pieces))
+                stone = computer_pieces[abs(move)]
+                if move < 0:
+                    if check_move(stone, 'left'):
+                        computer_pieces.remove(stone)
+                        if domino_snake[0][0] != stone[1]:
+                            stone = reorient_stone(stone)
+                        domino_snake.insert(0, stone)
+                        input_checked = True
+                    else:
+                        continue
+                elif move == 0:
+                    if len(stock_pieces):
+                        stone = random.choice(stock_pieces)
+                        stock_pieces.remove(stone)
+                        computer_pieces.append(stone)
+                    input_checked = True
+                elif move > 0:
+                    if check_move(stone, 'right'):
+                        computer_pieces.remove(stone)
+                        if domino_snake[-1][1] != stone[0]:
+                            stone = reorient_stone(stone)
+                        domino_snake.append(stone)
+                        input_checked = True
+                    else:
+                        continue
+            except ValueError:
+                continue
+            except IndexError:
+                continue
     elif turn == 'player':
         turn = 'computer'
         input_checked = False
-        print('Status: It\'s your turn to make a move. Enter your command.\n')
+        print('Status: It\'s your turn to make a move. Enter your command.')
         while not input_checked:
             try:
                 move = int(input())
                 stone = player_pieces[abs(move) - 1]
                 if move < 0:
-                    domino_snake.insert(0, stone)
-                    player_pieces.remove(stone)
-                    input_checked = True
+                    if check_move(stone, 'left'):
+                        player_pieces.remove(stone)
+                        if domino_snake[0][0] != stone[1]:
+                            stone = reorient_stone(stone)
+                        domino_snake.insert(0, stone)
+                        input_checked = True
+                    else:
+                        print('Illegal move. Please try again.')
+                        continue
                 elif move == 0:
-                    stone = random.choice(stock_pieces)
-                    stock_pieces.remove(stone)
-                    player_pieces.append(stone)
+                    if len(stock_pieces):
+                        stone = random.choice(stock_pieces)
+                        stock_pieces.remove(stone)
+                        player_pieces.append(stone)
                     input_checked = True
                 elif move > 0:
-                    domino_snake.append(stone)
-                    player_pieces.remove(stone)
-                    input_checked = True
+                    if check_move(stone, 'right'):
+                        player_pieces.remove(stone)
+                        if domino_snake[-1][1] != stone[0]:
+                            stone = reorient_stone(stone)
+                        domino_snake.append(stone)
+                        input_checked = True
+                    else:
+                        print('Illegal move. Please try again.')
+                        continue
             except ValueError:
                 print("Invalid input. Please try again.")
             except IndexError:
