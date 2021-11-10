@@ -109,43 +109,49 @@ while not game_over:
             break
     if turn == 'computer':
         turn = 'player'
-        input_checked = False
         input('Status: Computer is about to make a move. Press Enter to '
               'continue...\n')
-        while not input_checked:
-            try:
-                move = random.randint(
-                    (len(computer_pieces) * -1),
-                    len(computer_pieces))
-                stone = computer_pieces[abs(move)]
-                if move < 0:
-                    if check_move(stone, 'left'):
-                        computer_pieces.remove(stone)
-                        if domino_snake[0][0] != stone[1]:
-                            stone = reorient_stone(stone)
-                        domino_snake.insert(0, stone)
-                        input_checked = True
-                    else:
-                        continue
-                elif move == 0:
-                    if len(stock_pieces):
-                        stone = random.choice(stock_pieces)
-                        stock_pieces.remove(stone)
-                        computer_pieces.append(stone)
-                    input_checked = True
-                elif move > 0:
-                    if check_move(stone, 'right'):
-                        computer_pieces.remove(stone)
-                        if domino_snake[-1][1] != stone[0]:
-                            stone = reorient_stone(stone)
-                        domino_snake.append(stone)
-                        input_checked = True
-                    else:
-                        continue
-            except ValueError:
-                continue
-            except IndexError:
-                continue
+
+        # count scores
+        scores = [0, 0, 0, 0, 0, 0]
+        for stone in computer_pieces:
+            for i in range(0, 6):
+                scores[i] += stone.count(i)
+        for stone in domino_snake:
+            for i in range(0, 6):
+                scores[i] += stone.count(i)
+
+
+        # make a toplist
+        def rate_stone(s):
+            return scores[s[0] - 1] + scores[s[1] - 1]
+
+
+        computer_pieces.sort(key=rate_stone)
+
+        # try to move
+        moved = False
+        for stone in computer_pieces:
+            if check_move(stone, 'left'):
+                computer_pieces.remove(stone)
+                if domino_snake[0][0] != stone[1]:
+                    stone = reorient_stone(stone)
+                domino_snake.insert(0, stone)
+                moved = True
+                break
+            elif check_move(stone, 'right'):
+                computer_pieces.remove(stone)
+                if domino_snake[-1][1] != stone[0]:
+                    stone = reorient_stone(stone)
+                domino_snake.append(stone)
+                moved = True
+                break
+
+        # skip the turn
+        if not moved and len(stock_pieces):
+            stone = random.choice(stock_pieces)
+            stock_pieces.remove(stone)
+            computer_pieces.append(stone)
     elif turn == 'player':
         turn = 'computer'
         input_checked = False
